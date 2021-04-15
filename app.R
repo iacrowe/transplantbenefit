@@ -7,19 +7,23 @@
 library(shiny)
 library(shinydashboard)
 library(dplyr)
+library(ggplot2)
+library(ggridges)
+library(viridis)
 
 # Define UI
 ui <- dashboardPage(
 	
-	title = "Transplant Benefit .org",
+	title = "TBS comparison",
 	skin="black",
 	dashboardHeader(
-		tags$li(class = "dropdown", # Hack to get this to work. 
+		disable = TRUE,
+	  tags$li(class = "dropdown", # Hack to get this to work. 
 						tags$head(
 							tags$link(rel="shortcut icon", href="https://argonaut.is.ed.ac.uk/public/favicon.ico"),
 							
 							# Google analytics tracker info pasted into root file named as below. Not included in git. 
-							includeHTML("analytics.html")
+							# includeHTML("analytics.html")
 						)
 		),
 		
@@ -55,32 +59,46 @@ ui <- dashboardPage(
 								column(2,
 											 source(file.path("ui", "ui_input1_3.R"))$value,
 											 source(file.path("ui", "ui_input1_4.R"))$value,
-											 box(
-											 	textInput("download_text", "Name", value = "TBS report"),
-											 	downloadButton('download_pdf',"Download PDF"),
-											 	
-											 	title = "Download", width = 12,
-											 	collapsible = TRUE,
-											 	collapsed = TRUE)
 											 
 								),
 								column(3,
 											 fluidRow(
-											 	infoBoxOutput("tbsBox", width=12),
-											 	infoBoxOutput("m1Box", width=12),
-											 	infoBoxOutput("m2Box", width=12)
+											   box(title = "Need (M1) comparison", status = "info", width=12, 
+											       collapsible = TRUE, collapsed = TRUE,
+											       
+											       p("The distribution and point estimate of the current
+											         and updated M1 values are shown (lower equals greater need)")
+											   ),
+											  box(plotOutput("m1_comparison", height = 300), width = 12),
+											  br(),
+											  box(title = "Current Models", status = "info", width=12),
+										    infoBoxOutput("tbsBox_current", width=12),
+											 	infoBoxOutput("m1Box_current", width=12),
+											 	infoBoxOutput("m2Box_current", width=12)
 											 ),
 											 source(file.path("ui", "ui_input1_5.R"))$value
 											 
 								),
 								column(3,
-											 infoBoxOutput("ukeldBox", width=12),
-											 infoBoxOutput("meldBox", width=12),
-											 infoBoxOutput("meldnaBox", width=12),
-											 source(file.path("ui", "ui_1_6_selection_criteria.R"))$value,
-											 source(file.path("ui", "ui_1_7_cld_criteria.R"))$value,
-											 source(file.path("ui", "ui_footnote.R"))$value
-											 
+								       fluidRow(
+								         box(title = "TBS comparison", status = "info", width=12, 
+								             collapsible = TRUE, collapsed = TRUE,
+								             
+								             p("The distribution and point estimate of the current
+											         and updated TBS (higher equals greater benefit")
+								         ),
+								       box(plotOutput("tbs_comparison", height = 300), width = 12),
+								       br(),
+								       box(title = "Updated Models", status = "info", width=12),
+								       infoBoxOutput("tbsBox_new", width=12),
+								       infoBoxOutput("m1Box_new", width=12),
+								       infoBoxOutput("m2Box_new", width=12),
+								       br(),
+								       source(file.path("ui", "ui_1_6_selection_criteria.R"))$value,
+								       source(file.path("ui", "ui_1_7_cld_criteria.R"))$value,
+								       source(file.path("ui", "ui_footnote.R"))$value
+								      )
+
 											 # Plots to return when distribution data available
 											 # box(
 											 # 	plotOutput("hist_m1", height=200),
@@ -91,14 +109,7 @@ ui <- dashboardPage(
 											 # 	collapsible = TRUE)
 								)
 							),
-							fluidRow(
-								column(12,
-											 checkboxInput("data_table", label = "Show data table", FALSE),
-											 conditionalPanel(
-											 	condition = 'input.data_table == true',
-											 	DT::dataTableOutput("x1"))
-								)
-							),
+							
 							
 							# Retina images
 							tags$script(type="text/javascript", src="retina.min.js")
@@ -152,7 +163,7 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
 	
 	# Include the logic (server) for each tab
-	source(file.path("server", "server0_fn.R"),  local = TRUE)$value
+	source(file.path("server", "server0_fn_comp.R"),  local = TRUE)$value
 	
 	# TBS server ----
 	source(file.path("server", "server1_1.R"),  local = TRUE)$value
